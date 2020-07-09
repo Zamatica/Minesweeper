@@ -1,0 +1,166 @@
+
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+
+    <style>
+    </style>
+</head>
+<body>
+    <table id='board'>
+
+    </table>
+
+    <script>
+        class Point {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+        };
+
+
+        class Square {
+            static Type = {
+                  EMPTY: 0,
+                   CLUE: 1,
+                   MINE: 2
+            };
+
+
+            constructor(location) {
+                this.location = location;
+                
+                this.type = 0;
+                this.value = 0;
+
+                this.revealed = false;
+            }
+
+            setType(type) {
+                switch (type) {
+                    case Square.Type.EMPTY:
+                        this.type = Square.Type.EMPTY;
+                        break;
+
+                    case Square.Type.CLUE:
+                        this.type = Square.Type.CLUE;
+                        break;
+
+                    case Square.Type.MINE:
+                        this.type = Square.Type.MINE;
+                        this.value = -1;
+                        break;
+
+                    default:
+                        console.warn("Not a valid type!" + type + " - For: " + this.location.x + ", " + this.location.y);
+                }
+            }
+
+            onClick(square) {
+                console.log("I'm Clicked!" + JSON.stringify(square.square));
+                this.revealed = true;
+                
+                var event = {};
+                switch (this.type) {
+                    case Square.Type.MINE:
+                        event.name = "Lose";
+                        event.data = null;
+                        break;
+                }
+
+                game.emit(event);
+            }
+        };
+
+        class Board {
+            constructor(size_x, size_y) {
+                this.board = new Array(size_y);
+
+                for (var i = 0; i < this.board.length; ++i) {
+                    this.board[i] = new Array(size_x);
+                }
+            }
+
+            buildBoard() {
+                for (var i = 0; i < this.board.length; ++i) {
+                    for (var j = 0; j < this.board[0].length; ++j) {
+                        this.board[i][j] = new Square(new Point(i, j));
+                    }
+                }
+            }
+
+            render() {
+                console.log("[BOARD] Rendering Board");
+                var renderBoard = $("#board");
+                renderBoard.children().empty();
+
+                for (var i = 0; i < this.board.length; ++i) {
+                    var row = $("<tr></tr>");
+
+                    for (var j = 0; j < this.board[0].length; ++j) {
+                        var square = this.board[i][j];
+                        var renderSquare = $("<td></td>");
+                        
+                        if (square.revealed) {
+                            switch (square.type) {
+                                case Square.Type.EMPTY:
+                                    renderSquare.text("⬜");
+                                    break;
+
+                                case Square.Type.MINE:
+                                    renderSquare.text("✴️");
+                                    break;
+
+                                case Square.Type.CLUE:
+                                    renderSquare.text(" " + square.value + " ");
+                                    break;
+                            }   
+                        } else {
+                            renderSquare.text("🟦");
+
+                            renderSquare.click({ square: square }, square.onClick);
+                        }
+
+                        row.append(renderSquare);
+                    }
+
+                    renderBoard.append(row);
+                }
+            }
+        };
+
+        class Game {
+            constructor() {
+                this.board = new Board(1, 1);
+
+                this.board.buildBoard();
+                this.board.render();
+            }
+
+
+            emit(event) {
+                this.board.render();
+                console.log(event);
+            }
+        };
+
+        var game = new Game();
+
+        
+    </script>
+</body>
+
+
+
